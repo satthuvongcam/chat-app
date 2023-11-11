@@ -5,16 +5,14 @@ import { UserType } from '../UserContext'
 
 const UserChat = ({ friend }) => {
   const nav = useNavigation()
-  const { userId, setUserId } = useContext(UserType)
-  const [messages, setMessages] = useState([])
+  const { userId, setUserId, messages, setMessages } = useContext(UserType)
 
   const fetchMessages = async () => {
     try {
       const response = await fetch(
-        `http://10.0.2.2:8000/messages/${userId}/${friend._id}`
+        `https://chat-app-api-exv9.onrender.com/messages/${userId}/${friend._id}`
       )
       const data = await response.json()
-      console.log(data)
 
       if (response.ok) {
         setMessages(data)
@@ -28,20 +26,15 @@ const UserChat = ({ friend }) => {
 
   useEffect(() => {
     fetchMessages()
-  }, [messages])
+  }, [])
 
   const getLastMessage = () => {
-    const userMessage = messages.filter(
-      (message) => message.messageType === 'text'
-    )
+    const n = messages.length
 
-    const n = userMessage.length
-
-    return userMessage[n - 1]
+    return messages[n - 1]
   }
 
   const lastMessage = getLastMessage()
-  console.log('lastMessage: ', lastMessage)
 
   const formatTime = (time) => {
     const options = { hour: 'numeric', minute: 'numeric' }
@@ -73,9 +66,13 @@ const UserChat = ({ friend }) => {
       />
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 15, fontWeight: '500' }}>{friend?.name}</Text>
-        {lastMessage && (
+        {lastMessage?.imageUrl === null ? (
           <Text style={{ marginTop: 3, color: 'gray', fontWeight: '500' }}>
             {lastMessage?.message}
+          </Text>
+        ) : (
+          <Text style={{ marginTop: 3, color: 'gray', fontWeight: '500' }}>
+            You sent a image
           </Text>
         )}
       </View>

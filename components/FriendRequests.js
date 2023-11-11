@@ -14,7 +14,7 @@ const FriendRequests = ({
   const handleAcceptRequest = async (friendRequestId) => {
     try {
       const response = await fetch(
-        'http://10.0.2.2:8000/friend-request/accept',
+        'https://chat-app-api-exv9.onrender.com/friend-request/accept',
         {
           method: 'POST',
           headers: {

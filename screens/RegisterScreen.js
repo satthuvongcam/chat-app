@@ -28,7 +28,10 @@ const RegisterScreen = () => {
       }
 
       // send a POST request to the backend API to register the user
-      const response = await axios.post('http://10.0.2.2:8000/register', user)
+      const response = await axios.post(
+        'https://chat-app-api-exv9.onrender.com/register',
+        user
+      )
       console.log(response)
       Alert.alert(
         'Registration successful',

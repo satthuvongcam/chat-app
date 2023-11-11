@@ -32,9 +32,8 @@ const ChatMessageScreen = () => {
   const [selectedImage, setSelectedImage] = useState('')
   const [selectedMessages, setSelectedMessages] = useState([])
   const [message, setMessage] = useState('')
-  const [messages, setMessages] = useState([])
   const [recepientData, setRecepientData] = useState()
-  const { userId, setUserId } = useContext(UserType)
+  const { userId, setUserId, messages, setMessages } = useContext(UserType)
   const route = useRoute()
   const { recepientId } = route.params
   const nav = useNavigation()
@@ -47,7 +46,7 @@ const ChatMessageScreen = () => {
 
   const scrollToBottom = () => {
     if (scrollViewRef.current) {
-      scrollViewRef.current.scrollToEnd({ animated: false })
+      scrollViewRef.current.scrollToEnd({ animated: true })
     }
   }
 
@@ -62,10 +61,9 @@ const ChatMessageScreen = () => {
   const fetchMessages = async () => {
     try {
       const response = await fetch(
-        `http://10.0.2.2:8000/messages/${userId}/${recepientId}`
+        `https://chat-app-api-exv9.onrender.com/messages/${userId}/${recepientId}`
       )
       const data = await response.json()
-      console.log(data)
 
       if (response.ok) {
         setMessages(data)
@@ -84,7 +82,9 @@ const ChatMessageScreen = () => {
   useEffect(() => {
     const fetchRecepientData = async () => {
       try {
-        const response = await fetch(`http://10.0.2.2:8000/user/${recepientId}`)
+        const response = await fetch(
+          `https://chat-app-api-exv9.onrender.com/user/${recepientId}`
+        )
         const data = await response.json()
         setRecepientData(data)
       } catch (err) {
@@ -113,10 +113,13 @@ const ChatMessageScreen = () => {
         formData.append('messageText', message)
       }
 
-      const response = await fetch('http://10.0.2.2:8000/messages', {
-        method: 'POST',
-        body: formData,
-      })
+      const response = await fetch(
+        'https://chat-app-api-exv9.onrender.com/messages',
+        {
+          method: 'POST',
+          body: formData,
+        }
+      )
 
       if (response.ok) {
         setMessage('')
@@ -217,13 +220,16 @@ const ChatMessageScreen = () => {
 
   const handleDeleteMessages = async (messageIds) => {
     try {
-      const response = await fetch('http://10.0.2.2:8000/deleteMessages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ messages: messageIds }),
-      })
+      const response = await fetch(
+        'https://chat-app-api-exv9.onrender.com/deleteMessages',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ messages: messageIds }),
+        }
+      )
 
       if (response.ok) {
         setSelectedMessages((prevSelectedMessages) =>
@@ -297,8 +303,8 @@ const ChatMessageScreen = () => {
             )
           }
           if (messageItem.messageType === 'image') {
-            const filename = messageItem.imageUrl.split('\\').pop()
-            const sourceImage = `http://10.0.2.2:8000/files/${filename}`
+            const filename = messageItem.imageUrl.split('/').pop()
+            const sourceImage = `https://chat-app-api-exv9.onrender.com/files/${filename}`
             return (
               <Pressable
                 key={messageItem._id}

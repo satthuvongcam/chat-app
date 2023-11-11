@@ -47,7 +47,9 @@ const HomeScreen = () => {
         const userId = decodedToken.userId
         setUserId(userId)
 
-        const response = await axios.get(`http://10.0.2.2:8000/users/${userId}`)
+        const response = await axios.get(
+          `https://chat-app-api-exv9.onrender.com/users/${userId}`
+        )
         setUsers(response.data)
       } catch (err) {
         console.log('Error retrieving users ', err)
