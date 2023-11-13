@@ -9,8 +9,12 @@ const User = require('./models/user')
 const Message = require('./models/message')
 const path = require('path')
 const multer = require('multer')
+const { Server } = require('socket.io')
+const { createServer } = require('node:http')
 
 const app = express()
+const server = createServer(app)
+const io = new Server(server)
 const port = 8000
 
 app.use('/files', express.static(path.join(__dirname, 'files')))
@@ -32,7 +36,7 @@ app.get('/', (req, res) => {
   res.send('Hello World!')
 })
 
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Server is running on port ${port}`)
 })
 
@@ -219,7 +223,8 @@ app.post('/messages', upload.single('imageFile'), async (req, res) => {
       imageUrl: messageType === 'image' ? req.file.path : null,
     })
     await newMessage.save()
-    res.status(200).json({ message: 'Message sent successfully' })
+
+    res.status(200).json({ newMessage })
   } catch (err) {
     console.log('Error ', err)
     res.status(500).json({ message: 'Internal server error' })
@@ -313,4 +318,18 @@ app.get('/friends/:userId', async (req, res) => {
     console.log('Error: ', err)
     res.status(500).json({ message: 'Internal server error' })
   }
+})
+
+// socket
+global.onlineUsers = new Map()
+io.on('connection', (socket) => {
+  socket.on('add-user', (userId) => {
+    onlineUsers.set(userId, socket.id)
+    console.log('Online users: ', onlineUsers)
+  })
+  socket.on('sent-message', (data) => {
+    const socketID = onlineUsers.get(data.recepientId)
+    console.log('SocketID: ', socketID)
+    io.to(socketID).emit('receive-message', data)
+  })
 })
