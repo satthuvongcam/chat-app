@@ -26,6 +26,7 @@ import {
   FontAwesome,
   MaterialIcons,
 } from '@expo/vector-icons'
+const { io } = require('socket.io-client')
 
 const ChatMessageScreen = () => {
   const [isShowEmojiSelector, setIsShowEmojiSelector] = useState(false)
@@ -37,6 +38,7 @@ const ChatMessageScreen = () => {
   const route = useRoute()
   const { recepientId } = route.params
   const nav = useNavigation()
+  const socket = io('ws://10.0.2.2:8000')
 
   const scrollViewRef = useRef(null)
 
@@ -58,15 +60,20 @@ const ChatMessageScreen = () => {
     setIsShowEmojiSelector(!isShowEmojiSelector)
   }
 
-  const fetchMessages = async () => {
+  const fetchMessages = async (userId, recepientId) => {
     try {
       const response = await fetch(
         `https://chat-app-api-exv9.onrender.com/messages/${userId}/${recepientId}`
       )
       const data = await response.json()
+      const modifiedData = data.map((item) => {
+        const { _id } = item.senderId
+        const { __v, ...rest } = item
+        return { ...rest, senderId: _id }
+      })
 
       if (response.ok) {
-        setMessages(data)
+        setMessages(modifiedData)
       } else {
         console.log('Error showing messages ', response.status.message)
       }
@@ -76,7 +83,13 @@ const ChatMessageScreen = () => {
   }
 
   useEffect(() => {
-    fetchMessages()
+    socket.on('receive-message', (data) => {
+      setMessages((pre) => [...pre, data])
+
+      console.log('Update message from receive')
+    })
+    socket.emit('add-user', userId)
+    fetchMessages(userId, recepientId)
   }, [])
 
   useEffect(() => {
@@ -120,12 +133,14 @@ const ChatMessageScreen = () => {
           body: formData,
         }
       )
+      const result = await response.json()
+      console.log('result: ', result)
 
       if (response.ok) {
+        socket.emit('sent-message', result.newMessage)
         setMessage('')
         setSelectedImage('')
-
-        fetchMessages()
+        setMessages((pre) => [...pre, result.newMessage])
       }
     } catch (err) {
       console.log('Error sending message ', err)
@@ -235,8 +250,10 @@ const ChatMessageScreen = () => {
         setSelectedMessages((prevSelectedMessages) =>
           prevSelectedMessages.filter((id) => !messageIds.includes(id))
         )
-
-        fetchMessages()
+        const newMessages = messages.filter(
+          (item) => !messageIds.includes(item._id)
+        )
+        setMessages(newMessages)
       } else {
         console.log('error deleting messages', response.status)
       }
@@ -244,6 +261,7 @@ const ChatMessageScreen = () => {
       console.log('error deleting messages', error)
     }
   }
+  console.log('Messages: ', messages)
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#F0F0F0' }}>
@@ -252,15 +270,16 @@ const ChatMessageScreen = () => {
         contentContainerStyle={{ flexGrow: 1 }}
         onContentSizeChange={handleContentSizeChange}
       >
-        {messages.map((messageItem) => {
+        {messages.map((messageItem, index) => {
+          console.log('messageItem', messageItem)
           if (messageItem.messageType === 'text') {
             const isSelected = selectedMessages.includes(messageItem._id)
             return (
               <Pressable
                 onLongPress={() => handleSelectMessage(messageItem)}
-                key={messageItem._id}
+                key={index}
                 style={[
-                  messageItem?.senderId?._id === userId
+                  messageItem?.senderId === userId
                     ? {
                         alignSelf: 'flex-end',
                         backgroundColor: '#DCF8C6',
@@ -277,7 +296,6 @@ const ChatMessageScreen = () => {
                         margin: 10,
                         maxWidth: '60%',
                       },
-
                   isSelected && { width: '100%', backgroundColor: '#F0FFFF' },
                 ]}
               >
@@ -309,7 +327,7 @@ const ChatMessageScreen = () => {
               <Pressable
                 key={messageItem._id}
                 style={[
-                  messageItem?.senderId?._id === userId
+                  messageItem?.senderId === userId
                     ? {
                         alignSelf: 'flex-end',
                         padding: 8,
@@ -403,7 +421,7 @@ const ChatMessageScreen = () => {
         </View>
 
         <Pressable
-          onPress={() => handleSend('test')}
+          onPress={() => handleSend('image')}
           style={{
             backgroundColor: '#007bff',
             paddingVertical: 8,
