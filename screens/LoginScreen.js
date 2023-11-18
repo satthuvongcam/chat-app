@@ -39,10 +39,7 @@ const LoginScreen = () => {
     }
 
     try {
-      const response = await axios.post(
-        'https://chat-app-api-exv9.onrender.com/login',
-        user
-      )
+      const response = await axios.post('http://10.0.2.2:8000/login', user)
       const token = response.data.token
       await AsyncStorage.setItem('authToken', token)
       nav.replace('Home')

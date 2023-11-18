@@ -5,8 +5,6 @@ const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const cors = require('cors')
 const jwt = require('jsonwebtoken')
-const User = require('./models/user')
-const Message = require('./models/message')
 const path = require('path')
 const multer = require('multer')
 const { Server } = require('socket.io')
@@ -16,6 +14,10 @@ const app = express()
 const server = createServer(app)
 const io = new Server(server)
 const port = 8000
+
+const User = require('./models/user')
+const Message = require('./models/message')
+const Notification = require('./models/notification')
 
 app.use('/files', express.static(path.join(__dirname, 'files')))
 app.use(cors())
@@ -139,6 +141,7 @@ app.post('/friend-request', async (req, res) => {
 // endpoint to show all the friend-requests of a particular user
 app.get('/friend-request/:userId', async (req, res) => {
   try {
+    console.log('Friend request')
     const { userId } = req.params
 
     // Fetch the user document based on the userId
@@ -213,15 +216,16 @@ const upload = multer({ storage: storage })
 app.post('/messages', upload.single('imageFile'), async (req, res) => {
   try {
     const { senderId, recepientId, messageType, messageText } = req.body
-
     const newMessage = new Message({
       senderId,
       recepientId,
       messageType,
       message: messageText,
-      timeStamp: new Date(),
       imageUrl: messageType === 'image' ? req.file.path : null,
+      timeStamp: new Date(),
     })
+    console.log('req body: ', req.body)
+    console.log('New messages: ', newMessage)
     await newMessage.save()
 
     res.status(200).json({ newMessage })
@@ -320,6 +324,37 @@ app.get('/friends/:userId', async (req, res) => {
   }
 })
 
+// endpoint to get all notifications
+// app.get('/notifications/:senderId/:recepientId', async (req, res) => {
+//   try {
+//   } catch (err) {
+//     console.log('Error: ', err)
+//     res.status(500).json({ message: 'Internal server error' })
+//   }
+// })
+
+// endpoint to receive notifications
+app.post('/send-notification', async (req, res) => {
+  try {
+    const { recepientId, title, body } = req.body
+
+    console.log('req body: ', req.body)
+    const newNotification = new Notification({
+      recepientId,
+      title,
+      body,
+      timeStamp: new Date(),
+    })
+
+    console.log('newNotification', newNotification)
+    await newNotification.save()
+    res.status(200).json({ newNotification })
+  } catch (err) {
+    console.log('Error: ', err)
+    res.status(500).json({ message: 'Internal server error' })
+  }
+})
+
 // socket
 global.onlineUsers = new Map()
 io.on('connection', (socket) => {
@@ -330,6 +365,17 @@ io.on('connection', (socket) => {
   socket.on('sent-message', (data) => {
     const socketID = onlineUsers.get(data.recepientId)
     console.log('SocketID: ', socketID)
-    io.to(socketID).emit('receive-message', data)
+    socket.to(socketID).emit('receive-message', data)
   })
 })
+
+// firebase
+// var admin = require('firebase-admin')
+
+// var serviceAccount = require('./servicesAccountKey.json')
+
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+//   databaseURL:
+//     'https://chatappnoti-9e291-default-rtdb.asia-southeast1.firebasedatabase.app',
+// })

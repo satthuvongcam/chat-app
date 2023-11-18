@@ -12,7 +12,7 @@ const User = ({ user }) => {
     const fetchFriendRequests = async () => {
       try {
         const response = await fetch(
-          `https://chat-app-api-exv9.onrender.com/friend-requests/sent/${userId}`
+          `http://10.0.2.2:8000/friend-requests/sent/${userId}`
         )
 
         const data = await response.json()
@@ -32,9 +32,7 @@ const User = ({ user }) => {
   useEffect(() => {
     const fetchFriends = async () => {
       try {
-        const response = await fetch(
-          `https://chat-app-api-exv9.onrender.com/friends/${userId}`
-        )
+        const response = await fetch(`http://10.0.2.2:8000/friends/${userId}`)
 
         const data = await response.json()
 
@@ -52,16 +50,13 @@ const User = ({ user }) => {
 
   const handleSendFriendRequest = async (currentUserId, selectedUserId) => {
     try {
-      const response = await fetch(
-        'https://chat-app-api-exv9.onrender.com/friend-request',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ currentUserId, selectedUserId }),
-        }
-      )
+      const response = await fetch('http://10.0.2.2:8000/friend-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ currentUserId, selectedUserId }),
+      })
       if (response.ok) {
         setRequestSent(true)
       }

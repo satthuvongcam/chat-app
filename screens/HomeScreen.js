@@ -1,8 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useLayoutEffect, useContext, useState } from 'react'
 import { useNavigation } from '@react-navigation/native'
-import { Ionicons } from '@expo/vector-icons'
-import { MaterialIcons } from '@expo/vector-icons'
+import { MaterialIcons, FontAwesome5, Ionicons } from '@expo/vector-icons'
 import { UserType } from '../UserContext'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import jwtDecode from 'jwt-decode'
@@ -34,6 +33,12 @@ const HomeScreen = () => {
             size={24}
             color="black"
           />
+          <FontAwesome5
+            onPress={() => nav.navigate('Notify')}
+            name="bell"
+            size={24}
+            color="black"
+          />
         </View>
       ),
     })
@@ -42,14 +47,13 @@ const HomeScreen = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
+        console.log(1)
         const token = await AsyncStorage.getItem('authToken')
         const decodedToken = jwtDecode(token)
         const userId = decodedToken.userId
         setUserId(userId)
 
-        const response = await axios.get(
-          `https://chat-app-api-exv9.onrender.com/users/${userId}`
-        )
+        const response = await axios.get(`http://10.0.2.2:8000/users/${userId}`)
         setUsers(response.data)
       } catch (err) {
         console.log('Error retrieving users ', err)

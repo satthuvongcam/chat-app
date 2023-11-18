@@ -63,7 +63,7 @@ const ChatMessageScreen = () => {
   const fetchMessages = async (userId, recepientId) => {
     try {
       const response = await fetch(
-        `https://chat-app-api-exv9.onrender.com/messages/${userId}/${recepientId}`
+        `http://10.0.2.2:8000/messages/${userId}/${recepientId}`
       )
       const data = await response.json()
       const modifiedData = data.map((item) => {
@@ -95,9 +95,7 @@ const ChatMessageScreen = () => {
   useEffect(() => {
     const fetchRecepientData = async () => {
       try {
-        const response = await fetch(
-          `https://chat-app-api-exv9.onrender.com/user/${recepientId}`
-        )
+        const response = await fetch(`http://10.0.2.2:8000/user/${recepientId}`)
         const data = await response.json()
         setRecepientData(data)
       } catch (err) {
@@ -126,15 +124,11 @@ const ChatMessageScreen = () => {
         formData.append('messageText', message)
       }
 
-      const response = await fetch(
-        'https://chat-app-api-exv9.onrender.com/messages',
-        {
-          method: 'POST',
-          body: formData,
-        }
-      )
+      const response = await fetch('http://10.0.2.2:8000/messages', {
+        method: 'POST',
+        body: formData,
+      })
       const result = await response.json()
-      console.log('result: ', result)
 
       if (response.ok) {
         socket.emit('sent-message', result.newMessage)
@@ -235,16 +229,13 @@ const ChatMessageScreen = () => {
 
   const handleDeleteMessages = async (messageIds) => {
     try {
-      const response = await fetch(
-        'https://chat-app-api-exv9.onrender.com/deleteMessages',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ messages: messageIds }),
-        }
-      )
+      const response = await fetch('http://10.0.2.2:8000/deleteMessages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages: messageIds }),
+      })
 
       if (response.ok) {
         setSelectedMessages((prevSelectedMessages) =>
@@ -271,7 +262,6 @@ const ChatMessageScreen = () => {
         onContentSizeChange={handleContentSizeChange}
       >
         {messages.map((messageItem, index) => {
-          console.log('messageItem', messageItem)
           if (messageItem.messageType === 'text') {
             const isSelected = selectedMessages.includes(messageItem._id)
             return (
@@ -313,6 +303,7 @@ const ChatMessageScreen = () => {
                     fontSize: 10,
                     color: 'gray',
                     marginTop: 5,
+                    textAlign: 'left',
                   }}
                 >
                   {formatTime(messageItem.timeStamp)}
@@ -322,9 +313,10 @@ const ChatMessageScreen = () => {
           }
           if (messageItem.messageType === 'image') {
             const filename = messageItem.imageUrl.split('/').pop()
-            const sourceImage = `https://chat-app-api-exv9.onrender.com/files/${filename}`
+            const sourceImage = `http://10.0.2.2:8000/files/${filename}`
             return (
               <Pressable
+                onLongPress={() => handleSelectMessage(messageItem)}
                 key={messageItem._id}
                 style={[
                   messageItem?.senderId === userId
@@ -337,7 +329,6 @@ const ChatMessageScreen = () => {
                       }
                     : {
                         alignSelf: 'flex-start',
-                        backgroundColor: 'white',
                         padding: 8,
                         borderRadius: 7,
                         margin: 10,
@@ -421,7 +412,7 @@ const ChatMessageScreen = () => {
         </View>
 
         <Pressable
-          onPress={() => handleSend('image')}
+          onPress={() => handleSend('text')}
           style={{
             backgroundColor: '#007bff',
             paddingVertical: 8,

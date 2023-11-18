@@ -10,7 +10,7 @@ const UserChat = ({ friend }) => {
   const fetchMessages = async () => {
     try {
       const response = await fetch(
-        `https://chat-app-api-exv9.onrender.com/messages/${userId}/${friend._id}`
+        `http://10.0.2.2:8000/messages/${userId}/${friend._id}`
       )
       const data = await response.json()
 
