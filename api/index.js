@@ -369,13 +369,3 @@ io.on('connection', (socket) => {
   })
 })
 
-// firebase
-// var admin = require('firebase-admin')
-
-// var serviceAccount = require('./servicesAccountKey.json')
-
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount),
-//   databaseURL:
-//     'https://chatappnoti-9e291-default-rtdb.asia-southeast1.firebasedatabase.app',
-// })
