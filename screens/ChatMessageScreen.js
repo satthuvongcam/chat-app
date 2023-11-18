@@ -38,7 +38,7 @@ const ChatMessageScreen = () => {
   const route = useRoute()
   const { recepientId } = route.params
   const nav = useNavigation()
-  const socket = io('ws://10.0.2.2:8000')
+  const socket = io('ws://chat-app-api-flmn.onrender.com')
 
   const scrollViewRef = useRef(null)
 
@@ -63,7 +63,7 @@ const ChatMessageScreen = () => {
   const fetchMessages = async (userId, recepientId) => {
     try {
       const response = await fetch(
-        `http://10.0.2.2:8000/messages/${userId}/${recepientId}`
+        `https://chat-app-api-flmn.onrender.com/messages/${userId}/${recepientId}`
       )
       const data = await response.json()
       const modifiedData = data.map((item) => {
@@ -95,7 +95,9 @@ const ChatMessageScreen = () => {
   useEffect(() => {
     const fetchRecepientData = async () => {
       try {
-        const response = await fetch(`http://10.0.2.2:8000/user/${recepientId}`)
+        const response = await fetch(
+          `https://chat-app-api-flmn.onrender.com/user/${recepientId}`
+        )
         const data = await response.json()
         setRecepientData(data)
       } catch (err) {
@@ -124,10 +126,13 @@ const ChatMessageScreen = () => {
         formData.append('messageText', message)
       }
 
-      const response = await fetch('http://10.0.2.2:8000/messages', {
-        method: 'POST',
-        body: formData,
-      })
+      const response = await fetch(
+        'https://chat-app-api-flmn.onrender.com/messages',
+        {
+          method: 'POST',
+          body: formData,
+        }
+      )
       const result = await response.json()
 
       if (response.ok) {
@@ -229,13 +234,16 @@ const ChatMessageScreen = () => {
 
   const handleDeleteMessages = async (messageIds) => {
     try {
-      const response = await fetch('http://10.0.2.2:8000/deleteMessages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ messages: messageIds }),
-      })
+      const response = await fetch(
+        'https://chat-app-api-flmn.onrender.com/deleteMessages',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ messages: messageIds }),
+        }
+      )
 
       if (response.ok) {
         setSelectedMessages((prevSelectedMessages) =>
@@ -313,7 +321,7 @@ const ChatMessageScreen = () => {
           }
           if (messageItem.messageType === 'image') {
             const filename = messageItem.imageUrl.split('/').pop()
-            const sourceImage = `http://10.0.2.2:8000/files/${filename}`
+            const sourceImage = `https://chat-app-api-flmn.onrender.com/files/${filename}`
             return (
               <Pressable
                 onLongPress={() => handleSelectMessage(messageItem)}
